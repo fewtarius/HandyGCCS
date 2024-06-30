@@ -673,10 +673,15 @@ async def emit_now(seed_event, event_list, value):
 
 
 async def handle_key_down(seed_event, queued_event):
+    handycon.logger.info(queued_event)
     handycon.event_queue.append(queued_event)
+    if [e.EV_ABS, e.ABS_RZ] in queued_event:
+        value = 255
+    else:
+        value = 1
+    handycon.logger.info("Sending value: " + str(value))
     if queued_event in INSTANT_EVENTS:
-        await handycon.emit_now(seed_event, queued_event, 1)
-
+        await handycon.emit_now(seed_event, queued_event, value)
 
 async def handle_key_up(seed_event, queued_event):
     if queued_event in INSTANT_EVENTS:
