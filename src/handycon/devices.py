@@ -660,6 +660,7 @@ async def emit_now(seed_event, event_list, value):
             events.append(new_event)
     else:
         for button_event in event_list:
+            handycon.logger.info([seed_event.sec, seed_event.usec, button_event[0], button_event[1], value])
             new_event = InputEvent(
                 seed_event.sec, seed_event.usec, button_event[0], button_event[1], value
             )
@@ -676,10 +677,10 @@ async def handle_key_down(seed_event, queued_event):
     handycon.logger.info(queued_event)
     handycon.event_queue.append(queued_event)
     if [e.EV_ABS, e.ABS_RZ] in queued_event:
-        value = 255
+        event_value = 255
     else:
-        value = 1
-    handycon.logger.info("Sending value: " + str(value))
+        event_value = 1
+    handycon.logger.info("Sending value: " + str(event_value))
     if queued_event in INSTANT_EVENTS:
         await handycon.emit_now(seed_event, queued_event, value)
 
@@ -693,7 +694,11 @@ async def handle_key_up(seed_event, queued_event):
         if not handycon.last_button:
             handycon.event_queue.remove(queued_event)
             handycon.last_button = queued_event
-            await handycon.emit_now(seed_event, queued_event, 1)
+            if [e.EV_ABS, e.ABS_RZ] in queued_event:
+                event_value = 255
+            else:
+                event_value = 1
+            await handycon.emit_now(seed_event, queued_event, event_value)
             return
 
         # Clean up old button presses.
